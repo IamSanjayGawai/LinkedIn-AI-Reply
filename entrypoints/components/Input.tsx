@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 interface InputProps {
   inputValue: string;
@@ -7,7 +7,7 @@ interface InputProps {
 
 const Input: React.FC<InputProps> = ({ inputValue, setInputValue }) => {
   return (
-    <div style={{ marginBottom: '10px' }}>
+    <div style={{ marginBottom: "10px" }}>
       <input
         id="input-text"
         type="text"
@@ -15,10 +15,10 @@ const Input: React.FC<InputProps> = ({ inputValue, setInputValue }) => {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         style={{
-          width: '100%',
-          padding: '8px',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
+          width: "100%",
+          padding: "8px",
+          border: "1px solid #ccc",
+          borderRadius: "4px",
         }}
       />
     </div>

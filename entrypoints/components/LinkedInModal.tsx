@@ -1,11 +1,11 @@
 import React, { useEffect, useState, useRef } from "react";
-
 import editIcon from "~/assets/edit.svg";
 import Insert from "./Buttons/Insert";
 import Generate from "./Buttons/Generate";
-import Input from "./Input";
 
-
+interface MessageElement extends HTMLElement {
+  closest(selector: string): HTMLElement | null;
+}
 
 const LinkedInModal: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -22,6 +22,23 @@ const LinkedInModal: React.FC = () => {
       "Thank you for the opportunity! If you have any more questions or if there's anything else I can help you with, feel free to ask.",
     ];
     return messages[0];
+  };
+  const findLinkedInInput = () => {
+    const selectors = [
+      '.msg-form__contenteditable[contenteditable="true"]',
+      '[role="textbox"][contenteditable="true"]',
+      '.editor-content[contenteditable="true"]',
+      ".msg-form__contenteditable",
+      '[contenteditable="true"]',
+    ];
+
+    for (const selector of selectors) {
+      const element = document.querySelector(selector) as HTMLElement;
+      if (element) {
+        return element;
+      }
+    }
+    return null;
   };
 
   const handleGenerateClick = (e: React.MouseEvent) => {
@@ -77,27 +94,6 @@ const LinkedInModal: React.FC = () => {
     }, 500);
   };
 
-  const handleInsertClick = () => {
-    if (lastGeneratedMessage && parentElementRef.current) {
-      const messageInput = parentElementRef.current.querySelector(
-        ".msg-form__contenteditable"
-      );
-      if (messageInput) {
-        messageInput.removeAttribute("aria-label");
-
-        let existingParagraph = messageInput.querySelector("p");
-        if (!existingParagraph) {
-          existingParagraph = document.createElement("p");
-          messageInput.appendChild(existingParagraph);
-        }
-        existingParagraph.textContent = lastGeneratedMessage;
-
-        setInsertButtonVisible(false);
-        setModalVisible(false);
-      }
-    }
-  };
-
   const handleClickOutside = (event: MouseEvent) => {
     if (
       modalRef.current &&
@@ -105,7 +101,6 @@ const LinkedInModal: React.FC = () => {
       !(event.target as HTMLElement).closest(".edit-icon")
     ) {
       setModalVisible(false);
-      // Reset state when closing modal
       setInputValue("");
       setInsertButtonVisible(false);
       if (messagesRef.current) {
@@ -114,7 +109,6 @@ const LinkedInModal: React.FC = () => {
     }
   };
 
-  // Function to add edit icon to message input
   const addEditIcon = (parentElement: HTMLElement) => {
     if (!parentElement.querySelector(".edit-icon")) {
       parentElement.style.position = "relative";
@@ -196,13 +190,11 @@ const LinkedInModal: React.FC = () => {
       subtree: true,
     });
 
-    // Add click listeners
     document.addEventListener("click", handleMessageInputClick);
     if (modalVisible) {
       document.addEventListener("mousedown", handleClickOutside);
     }
 
-    // Cleanup
     return () => {
       document.removeEventListener("click", handleMessageInputClick);
       document.removeEventListener("mousedown", handleClickOutside);
@@ -214,6 +206,14 @@ const LinkedInModal: React.FC = () => {
   useEffect(() => {
     const maintainFocus = () => {
       if (parentElementRef.current) {
+        const contentContainer = parentElementRef.current.closest(
+          ".msg-form_msg-content-container"
+        );
+        if (contentContainer) {
+          contentContainer.classList.add(
+            "msg-form_msg-content-container--is-active"
+          );
+        }
         parentElementRef.current.setAttribute(
           "data-artdeco-is-focused",
           "true"
@@ -235,6 +235,26 @@ const LinkedInModal: React.FC = () => {
       });
     };
   }, []);
+
+  // Handle Enter key press
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && !event.shiftKey && inputValue.trim()) {
+        event.preventDefault();
+        const generateBtn = document.getElementById("generate-btn");
+        if (generateBtn && !isGenerating) {
+          generateBtn.click();
+        }
+      }
+    };
+
+    const inputElement = document.getElementById("input-text");
+    inputElement?.addEventListener("keypress", handleKeyPress);
+
+    return () => {
+      inputElement?.removeEventListener("keypress", handleKeyPress);
+    };
+  }, [inputValue, isGenerating]);
 
   return modalVisible ? (
     <div
@@ -270,8 +290,21 @@ const LinkedInModal: React.FC = () => {
             flexDirection: "column",
           }}
         />
-        <Input inputValue={inputValue} setInputValue={setInputValue} />
-
+        <div style={{ marginBottom: "10px" }}>
+          <input
+            id="input-text"
+            type="text"
+            placeholder="Enter your prompt..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "8px",
+              border: "1px solid #ccc",
+              borderRadius: "4px",
+            }}
+          />
+        </div>
         <div style={{ textAlign: "right", marginTop: "12px" }}>
           {insertButtonVisible && (
             <Insert
@@ -279,8 +312,10 @@ const LinkedInModal: React.FC = () => {
               setInsertButtonVisible={setInsertButtonVisible}
               setModalVisible={setModalVisible}
               parentElementRef={parentElementRef}
+              findLinkedInInput={findLinkedInInput}
             />
           )}
+
           <Generate
             handleGenerateClick={handleGenerateClick}
             isGenerating={isGenerating}
@@ -291,4 +326,5 @@ const LinkedInModal: React.FC = () => {
     </div>
   ) : null;
 };
+
 export default LinkedInModal;
