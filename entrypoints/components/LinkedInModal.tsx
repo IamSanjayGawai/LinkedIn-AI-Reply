@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from "react";
 import editIcon from "~/assets/edit.svg";
 import Insert from "./Buttons/Insert";
 import Generate from "./Buttons/Generate";
+import "../../assets/tailwind.css";
+import Input from "./Input";
 
 interface MessageElement extends HTMLElement {
   closest(selector: string): HTMLElement | null;
@@ -257,55 +259,19 @@ const LinkedInModal: React.FC = () => {
   }, [inputValue, isGenerating]);
 
   return modalVisible ? (
-    <div
-      id="custom-modal"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0, 0, 0, 0.5)",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        zIndex: 4000,
-      }}
-    >
+    <div className="w-full fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-40">
       <div
         ref={modalRef}
-        style={{
-          background: "white",
-          borderRadius: "8px",
-          width: "100%",
-          maxWidth: "570px",
-          padding: "20px",
-        }}
+        className="bg-white rounded-lg w-full max-w-[600px] p-5"
       >
         <div
           ref={messagesRef}
-          style={{
-            marginTop: "10px",
-            maxHeight: "200px",
-            overflowY: "auto",
-            padding: "10px",
-            display: "flex",
-            flexDirection: "column",
-          }}
+          className="mt-2 max-h-52 overflow-y-auto p-2 flex flex-col"
         />
-        <div style={{ marginBottom: "10px" }}>
-          <input
-            id="input-text"
-            type="text"
-            placeholder="Enter your prompt..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            style={{
-              width: "100%",
-              padding: "8px",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-            }}
-          />
+        <div className="mb-2">
+          <Input inputValue={inputValue} setInputValue={setInputValue} />
         </div>
-        <div style={{ textAlign: "right", marginTop: "12px" }}>
+        <div className="text-right mt-3  w-full flex justify-end ">
           {insertButtonVisible && (
             <Insert
               lastGeneratedMessage={lastGeneratedMessage}
